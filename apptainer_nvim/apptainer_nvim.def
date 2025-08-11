@@ -1,14 +1,17 @@
 Bootstrap: docker
-From: ubuntu:noble
+From: debian:bookworm-slim
 
 %post
-    apt-get update 
-    apt install -y build-essential
+    apt-get update
     apt install -y git
-    apt install -y neovim
+    apt install -y wget
+    wget https://github.com/neovim/neovim/releases/download/v0.11.3/nvim-linux-x86_64.tar.gz
+    tar -xvzf nvim-linux-x86_64.tar.gz
+    rm -f nvim-linux-x86_64.tar.gz
+    apt remove -y wget
 
 %runscript
-    nvim $*
+    /nvim-linux-x86_64/bin/nvim $*
 
 %help
     This is a container that runs a new enough version of neovim in a container to allow for the use of the lazyvim framework. Place the nvim folder in your ~/.config folder or pass the location of the lazy.lua e.g. lvim -u nvim/lua/config/lazy.lua
