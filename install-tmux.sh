@@ -3,9 +3,7 @@ set -euo pipefail
 
 TMUX_CONFIG_DIR="$HOME/.config/tmux"
 TPM_DIR="$TMUX_CONFIG_DIR/plugins/tpm"
-
-# --- Resolve the directory this script lives in ---
-SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" && pwd)"
+TMUX_CONF_URL="https://raw.githubusercontent.com/murraycollier/containers/refs/heads/main/tmux.conf"
 
 # --- Install git if not present ---
 if ! command -v git &>/dev/null; then
@@ -35,13 +33,17 @@ fi
 # --- Create config directory if it doesn't exist ---
 mkdir -p "$TMUX_CONFIG_DIR"
 
-# --- Copy tmux config ---
-if [[ -f "$SCRIPT_DIR/tmux.conf" ]]; then
-  cp "$SCRIPT_DIR/tmux.conf" "$TMUX_CONFIG_DIR/tmux.conf"
-  echo "✓ Copied tmux.conf → $TMUX_CONFIG_DIR/tmux.conf"
+# --- Download tmux config ---
+echo "→ Downloading tmux.conf..."
+if command -v wget &>/dev/null; then
+  wget -qO "$TMUX_CONFIG_DIR/tmux.conf" "$TMUX_CONF_URL"
+elif command -v curl &>/dev/null; then
+  curl -sSL "$TMUX_CONF_URL" -o "$TMUX_CONFIG_DIR/tmux.conf"
 else
-  echo "✗ No tmux.conf found in $SCRIPT_DIR — skipping."
+  echo "✗ Neither wget nor curl found. Please install one and re-run."
+  exit 1
 fi
+echo "✓ tmux.conf downloaded → $TMUX_CONFIG_DIR/tmux.conf"
 
 # --- Install TPM ---
 if [[ -d "$TPM_DIR" ]]; then
