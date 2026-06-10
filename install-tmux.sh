@@ -5,7 +5,7 @@ TMUX_CONFIG_DIR="$HOME/.config/tmux"
 TPM_DIR="$TMUX_CONFIG_DIR/plugins/tpm"
 
 # --- Resolve the directory this script lives in ---
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")" && pwd)"
 
 # --- Install git if not present ---
 if ! command -v git &>/dev/null; then
@@ -45,10 +45,20 @@ fi
 
 # --- Install TPM ---
 if [[ -d "$TPM_DIR" ]]; then
-  echo "✓ TPM already installed at $TPM_DIR — skipping clone."
+  echo "✓ TPM already installed at $TPM_DIR — skipping."
 else
   echo "→ Installing TPM..."
-  git clone https://github.com/tmux-plugins/tpm "$TPM_DIR"
+  mkdir -p "$TPM_DIR"
+  if command -v wget &>/dev/null; then
+    wget -qO /tmp/tpm.tar.gz https://github.com/tmux-plugins/tpm/archive/refs/heads/master.tar.gz
+  elif command -v curl &>/dev/null; then
+    curl -sSL https://github.com/tmux-plugins/tpm/archive/refs/heads/master.tar.gz -o /tmp/tpm.tar.gz
+  else
+    echo "✗ Neither wget nor curl found. Please install one and re-run."
+    exit 1
+  fi
+  tar -xzf /tmp/tpm.tar.gz --strip-components=1 -C "$TPM_DIR"
+  rm /tmp/tpm.tar.gz
   echo "✓ TPM installed at $TPM_DIR"
 fi
 
