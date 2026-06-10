@@ -7,6 +7,31 @@ TPM_DIR="$TMUX_CONFIG_DIR/plugins/tpm"
 # --- Resolve the directory this script lives in ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# --- Install git if not present ---
+if ! command -v git &>/dev/null; then
+  echo "→ git not found, installing..."
+  if command -v apt-get &>/dev/null; then
+    sudo apt-get update -qq && sudo apt-get install -y git
+  elif command -v dnf &>/dev/null; then
+    sudo dnf install -y git
+  elif command -v pacman &>/dev/null; then
+    sudo pacman -Sy --noconfirm git
+  elif command -v brew &>/dev/null; then
+    brew install git
+  elif [[ "$(uname)" == "Darwin" ]]; then
+    echo "→ Triggering macOS Xcode CLI tools install (includes git)..."
+    xcode-select --install
+    echo "  Re-run this script once the Xcode CLI tools have finished installing."
+    exit 1
+  else
+    echo "✗ Could not detect a package manager to install git. Please install it manually."
+    exit 1
+  fi
+  echo "✓ git installed"
+else
+  echo "✓ git already installed"
+fi
+
 # --- Create config directory if it doesn't exist ---
 mkdir -p "$TMUX_CONFIG_DIR"
 
